@@ -1,0 +1,26 @@
+body, html, .app-container { height: 100%; margin: 0; font-family: 'Inter', Arial, sans-serif; }
+
+.app-container {
+  display: flex; min-height: 100vh; background: var(--bg);
+}
+
+.sidebar { width: 230px; background: var(--sidebar-bg); color: var(--sidebar-fg); padding: 18px; }
+.sidebar-header { display: flex; align-items: center; justify-content: space-between; }
+.sidebar ul { list-style: none; padding: 0; margin: 24px 0; }
+.sidebar li { margin-bottom: 8px; }
+.sidebar li.active button { background: var(--primary); color: #fff; font-weight: bold; }
+.sidebar button { width: 100%; background: none; border: none; font: inherit; padding: 10px; cursor: pointer; border-radius: 6px; transition: background 0.2s; }
+.sidebar button:hover { background: var(--hover); }
+
+main { flex: 1; padding: 2em; background: var(--main-bg); color: var(--main-fg); min-width: 0; }
+
+.theme-light { --bg: #f4f5fa; --sidebar-bg: #262a36; --sidebar-fg: #fff; --main-bg: #fff; --main-fg: #222; --primary: #4f7cff; --hover: #b6c8ff; }
+.theme-dark  { --bg: #181c24; --sidebar-bg: #1a1e28; --sidebar-fg: #eee; --main-bg: #23283b; --main-fg: #eee; --primary: #4f7cff; --hover: #2b3a54; }
+
+.search-bar { margin: 18px 0; display: flex; }
+.search-bar input { flex: 1; padding: 8px; border: none; border-radius: 4px 0 0 4px; }
+.search-bar button { padding: 8px 12px; border: none; border-radius: 0 4px 4px 0; background: var(--primary); color: #fff; cursor: pointer; }
+
+.template-list { display: flex; flex-wrap: wrap; gap: 18px; }
+.template-card { background: var(--sidebar-bg); color: var(--sidebar-fg); padding: 18px; border-radius: 8px; width: 260px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.template-card h3 { margin: 0 0 8px 0; }
