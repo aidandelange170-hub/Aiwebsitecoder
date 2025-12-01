@@ -10,12 +10,16 @@
     <div id="app">
         <header>
             <h1>Our Place AI Website Builder</h1>
+            <p>Describe your website and we'll build it for you using AI and GitHub code snippets</p>
         </header>
         
         <main>
             <div id="input-section">
-                <textarea id="prompt-input" placeholder="Describe what kind of website you want to build..."></textarea>
-                <button id="generate-btn">Generate Website</button>
+                <textarea id="prompt-input" placeholder="Describe what kind of website you want to build... (e.g., 'A responsive portfolio website with a gallery and contact form')"></textarea>
+                <div style="display: flex; align-items: center;">
+                    <button id="generate-btn">Generate Website</button>
+                </div>
+                <!-- Status information will be inserted here by JavaScript -->
             </div>
             
             <div id="output-section">

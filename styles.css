@@ -31,6 +31,12 @@ header h1 {
     font-size: 2.5rem;
 }
 
+header p {
+    color: #7f8c8d;
+    margin-top: 10px;
+    font-size: 1.1rem;
+}
+
 #input-section {
     background-color: #fff;
     padding: 20px;
@@ -93,10 +99,21 @@ header h1 {
     overflow-x: auto;
     max-height: 400px;
     overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+/* Additional styles for new elements */
+button {
+    margin-right: 10px;
 }
 
 @media (max-width: 768px) {
     #output-section {
         grid-template-columns: 1fr;
+    }
+    
+    #preview-frame, #generated-code {
+        min-height: 300px;
     }
 }
