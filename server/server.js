@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const GitHubScraper = require('../src/scrap.js');
+const NewFeatures = require('../src/newFeatures.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,8 +10,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Initialize the GitHub scraper
+// Initialize the GitHub scraper and new features
 const scraper = new GitHubScraper();
+const newFeatures = new NewFeatures();
 
 // Route to serve the main HTML page
 app.get('/', (req, res) => {
@@ -42,13 +44,18 @@ app.post('/generate', async (req, res) => {
         // Sanitize the HTML content to prevent XSS
         htmlContent = sanitizeHTML(htmlContent);
         
+        // Apply new features based on request options
+        const featureOptions = req.body.features || {};
+        htmlContent = await newFeatures.applyAllNewFeatures(htmlContent, prompt, featureOptions);
+        
         // Send the generated HTML back to the client
         res.json({
             html: htmlContent,
             source: scrapedResult.repo || 'generated',
             description: scrapedResult.description,
             queryUsed: scrapedResult.queryUsed || 'none',
-            analysis: scraper.analyzePrompt(prompt)
+            analysis: scraper.analyzePrompt(prompt),
+            enhanced: true
         });
         
     } catch (error) {
@@ -89,12 +96,70 @@ app.get('/status', (req, res) => {
             'HTML/CSS/JS extraction',
             'Prompt analysis',
             'Responsive templates',
-            'Real-time preview'
+            'Real-time preview',
+            'Code optimization',
+            'Modern CSS frameworks (Tailwind, Bootstrap, Bulma)',
+            'Performance optimizations',
+            'Accessibility enhancements',
+            'Dark mode support',
+            'Modern JavaScript features',
+            'SEO enhancements'
         ],
         endpoints: [
             'GET /',
             'POST /generate',
             'POST /analyze',
+            'POST /enhance',
+            'GET /features',
+            'GET /status'
+        ]
+    });
+});
+
+// Route to enhance existing HTML with new features
+app.post('/enhance', async (req, res) => {
+    try {
+        const { html, prompt, features } = req.body;
+        
+        if (!html) {
+            return res.status(400).json({ error: 'HTML content is required' });
+        }
+        
+        const featureOptions = features || {};
+        const enhancedHtml = await newFeatures.applyAllNewFeatures(html, prompt || 'Generated Website', featureOptions);
+        
+        res.json({
+            html: enhancedHtml,
+            enhanced: true
+        });
+        
+    } catch (error) {
+        console.error('Error enhancing HTML:', error);
+        res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+});
+
+// Route to get available new features
+app.get('/features', (req, res) => {
+    res.json({
+        status: 'active',
+        features: [
+            'Code optimization',
+            'Component extraction',
+            'Modern CSS frameworks (Tailwind, Bootstrap, Bulma)',
+            'Responsive design enhancement',
+            'Performance optimizations',
+            'Accessibility enhancements',
+            'Dark mode support',
+            'Modern JavaScript features',
+            'SEO enhancements'
+        ],
+        endpoints: [
+            'GET /',
+            'POST /generate',
+            'POST /analyze',
+            'POST /enhance',
+            'GET /features',
             'GET /status'
         ]
     });
