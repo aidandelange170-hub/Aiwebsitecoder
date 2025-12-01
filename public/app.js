@@ -52,6 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p><strong>Query used:</strong> ${data.queryUsed || 'N/A'}</p>
                 <p><strong>Features detected:</strong> ${data.analysis.features.join(', ') || 'None'}</p>
                 <p><strong>Type:</strong> ${data.analysis.type}</p>
+                <p><strong>Stars:</strong> ${data.stars || 0}</p>
+                ${data.url ? `<p><a href="${data.url}" target="_blank">View Repository</a></p>` : ''}
             `;
             
         } catch (error) {
@@ -94,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <p><strong>Type:</strong> ${data.analysis.type}</p>
                             <p><strong>Features:</strong> ${data.analysis.features.join(', ') || 'None'}</p>
                             <p><strong>Technologies:</strong> ${data.analysis.technologies.join(', ') || 'None'}</p>
+                            <p><strong>Complexity:</strong> ${data.analysis.complexity}</p>
                             <p><strong>Search queries that will be used:</strong></p>
                             <ul>
                                 ${data.searchQueries.map(query => `<li>${query}</li>`).join('')}
@@ -152,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             console.log('Server status:', data);
+            document.title = `AI Website Builder v${data.version || '2.0.0'}`;
         })
         .catch(error => {
             console.error('Error checking server status:', error);

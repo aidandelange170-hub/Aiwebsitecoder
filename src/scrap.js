@@ -1,18 +1,54 @@
 // GitHub Scraper for AI Website Builder
 const axios = require('axios');
 const cheerio = require('cheerio');
+const config = require('../config/config.js');
 
 class GitHubScraper {
     constructor() {
         this.searchEndpoints = {
-            code: 'https://api.github.com/search/code',
-            repos: 'https://api.github.com/search/repositories'
+            code: `${config.github.apiBase}/search/code`,
+            repos: `${config.github.apiBase}/search/repositories`
         };
-        this.rateLimitDelay = 1000; // Delay between requests to respect rate limits
+        this.rateLimitDelay = config.github.rateLimitDelay; // Delay between requests to respect rate limits
+        this.maxRetries = config.github.maxRetries;
+        this.timeout = config.github.timeout;
     }
 
     async delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Enhanced request function with retry logic
+    async makeRequest(url, params = {}, headers = {}) {
+        const defaultHeaders = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'AI-Website-Builder'
+        };
+        
+        const requestConfig = {
+            method: 'GET',
+            url: url,
+            params: params,
+            headers: { ...defaultHeaders, ...headers },
+            timeout: this.timeout
+        };
+
+        for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+            try {
+                const response = await axios(requestConfig);
+                return response;
+            } catch (error) {
+                console.error(`Request attempt ${attempt + 1} failed:`, error.message);
+                
+                if (attempt === this.maxRetries - 1) {
+                    // Last attempt failed
+                    throw error;
+                }
+                
+                // Wait before retrying
+                await this.delay(this.rateLimitDelay * (attempt + 1));
+            }
+        }
     }
 
     async searchCode(query, language = 'html') {
@@ -20,17 +56,11 @@ class GitHubScraper {
             // Add rate limiting delay
             await this.delay(this.rateLimitDelay);
             
-            const response = await axios.get(this.searchEndpoints.code, {
-                params: {
-                    q: `${query} language:${language}`,
-                    sort: 'stars',
-                    order: 'desc',
-                    per_page: 10
-                },
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'AI-Website-Builder'
-                }
+            const response = await this.makeRequest(this.searchEndpoints.code, {
+                q: `${query} language:${language}`,
+                sort: config.github.search.sort,
+                order: config.github.search.order,
+                per_page: config.github.search.perPage
             });
 
             return response.data.items || [];
@@ -48,17 +78,11 @@ class GitHubScraper {
             // Add rate limiting delay
             await this.delay(this.rateLimitDelay);
             
-            const response = await axios.get(this.searchEndpoints.repos, {
-                params: {
-                    q: query,
-                    sort: 'stars',
-                    order: 'desc',
-                    per_page: 10
-                },
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'AI-Website-Builder'
-                }
+            const response = await this.makeRequest(this.searchEndpoints.repos, {
+                q: query,
+                sort: config.github.search.sort,
+                order: config.github.search.order,
+                per_page: config.github.search.perPage
             });
 
             return response.data.items || [];
@@ -76,7 +100,7 @@ class GitHubScraper {
             // Add rate limiting delay
             await this.delay(this.rateLimitDelay);
             
-            const response = await axios.get(downloadUrl);
+            const response = await axios.get(downloadUrl, { timeout: this.timeout });
             return response.data;
         } catch (error) {
             console.error('Error scraping code content:', error.message);
@@ -87,13 +111,8 @@ class GitHubScraper {
     async extractHTMLFromRepo(repoFullName) {
         try {
             // Get repository contents
-            const contentsUrl = `https://api.github.com/repos/${repoFullName}/contents`;
-            const response = await axios.get(contentsUrl, {
-                headers: {
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'AI-Website-Builder'
-                }
-            });
+            const contentsUrl = `${config.github.apiBase}/repos/${repoFullName}/contents`;
+            const response = await this.makeRequest(contentsUrl);
 
             const contents = response.data;
             let htmlContent = '';
@@ -120,12 +139,7 @@ class GitHubScraper {
                 } else if (item.type === 'dir') {
                     // Recursively search in subdirectories
                     await this.delay(this.rateLimitDelay); // Rate limiting
-                    const subDirContents = await axios.get(item.url, {
-                        headers: {
-                            'Accept': 'application/vnd.github.v3+json',
-                            'User-Agent': 'AI-Website-Builder'
-                        }
-                    });
+                    const subDirContents = await this.makeRequest(item.url);
                     
                     for (const subItem of subDirContents.data) {
                         if (subItem.type === 'file') {
@@ -170,6 +184,10 @@ class GitHubScraper {
         
         // Clean up any remaining GitHub-specific URLs
         content = content.replace(/https:\/\/github\.com\/[^"'\s]+/g, '');
+        
+        // Remove any remaining GitHub UI elements
+        content = content.replace(/<div class="[^"]*Box[^"]*">[\s\S]*?<\/div>/g, '');
+        content = content.replace(/<div class="[^"]*Border[^"]*">[\s\S]*?<\/div>/g, '');
         
         return content;
     }
@@ -223,7 +241,8 @@ class GitHubScraper {
             type: null,
             features: [],
             technologies: [],
-            layout: null
+            layout: null,
+            complexity: 'medium'
         };
         
         const promptLower = prompt.toLowerCase();
@@ -234,6 +253,9 @@ class GitHubScraper {
         else if (promptLower.includes('ecommerce') || promptLower.includes('shop')) analysis.type = 'ecommerce';
         else if (promptLower.includes('landing')) analysis.type = 'landing';
         else if (promptLower.includes('business')) analysis.type = 'business';
+        else if (promptLower.includes('restaurant')) analysis.type = 'restaurant';
+        else if (promptLower.includes('agency')) analysis.type = 'agency';
+        else if (promptLower.includes('personal')) analysis.type = 'personal';
         else analysis.type = 'general';
         
         // Identify required features
@@ -244,15 +266,31 @@ class GitHubScraper {
         if (promptLower.includes('slider') || promptLower.includes('carousel')) analysis.features.push('slider');
         if (promptLower.includes('footer')) analysis.features.push('footer');
         if (promptLower.includes('header')) analysis.features.push('header');
+        if (promptLower.includes('blog') || promptLower.includes('posts')) analysis.features.push('blog');
+        if (promptLower.includes('shop') || promptLower.includes('products')) analysis.features.push('products');
+        if (promptLower.includes('login') || promptLower.includes('authentication')) analysis.features.push('authentication');
+        if (promptLower.includes('dashboard')) analysis.features.push('dashboard');
+        if (promptLower.includes('search')) analysis.features.push('search');
+        if (promptLower.includes('chat') || promptLower.includes('messaging')) analysis.features.push('chat');
+        if (promptLower.includes('map') || promptLower.includes('location')) analysis.features.push('map');
+        if (promptLower.includes('video') || promptLower.includes('media')) analysis.features.push('media');
         
         // Identify preferred technologies
         if (promptLower.includes('bootstrap')) analysis.technologies.push('bootstrap');
         if (promptLower.includes('tailwind')) analysis.technologies.push('tailwind');
         if (promptLower.includes('vanilla')) analysis.technologies.push('vanilla_js');
+        if (promptLower.includes('react')) analysis.technologies.push('react');
+        if (promptLower.includes('vue')) analysis.technologies.push('vue');
+        if (promptLower.includes('angular')) analysis.technologies.push('angular');
+        if (promptLower.includes('jquery')) analysis.technologies.push('jquery');
         
         // Determine layout
         if (promptLower.includes('single page') || promptLower.includes('one page')) analysis.layout = 'single_page';
         else analysis.layout = 'multi_section';
+        
+        // Determine complexity
+        if (promptLower.includes('simple') || promptLower.includes('basic')) analysis.complexity = 'simple';
+        else if (promptLower.includes('complex') || promptLower.includes('advanced')) analysis.complexity = 'complex';
         
         return analysis;
     }
@@ -273,6 +311,7 @@ class GitHubScraper {
         if (analysis.features.length > 0) {
             for (const feature of analysis.features) {
                 queries.push(`${prompt} ${feature}`);
+                queries.push(`${analysis.type} ${feature}`);
             }
         }
         
@@ -280,8 +319,12 @@ class GitHubScraper {
         if (analysis.technologies.length > 0) {
             for (const tech of analysis.technologies) {
                 queries.push(`${prompt} ${tech}`);
+                queries.push(`${analysis.type} ${tech}`);
             }
         }
+        
+        // Complexity-specific queries
+        queries.push(`${prompt} ${analysis.complexity}`);
         
         return [...new Set(queries)]; // Remove duplicates
     }
