@@ -1,11 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Our Place – AI Website Builder & Hub</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Place AI Website Builder</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Our Place AI Website Builder</h1>
+        </header>
+        
+        <main>
+            <div id="input-section">
+                <textarea id="prompt-input" placeholder="Describe what kind of website you want to build..."></textarea>
+                <button id="generate-btn">Generate Website</button>
+            </div>
+            
+            <div id="output-section">
+                <div id="preview-container">
+                    <h2>Website Preview</h2>
+                    <iframe id="preview-frame" srcdoc=""></iframe>
+                </div>
+                
+                <div id="code-section">
+                    <h2>Generated Code</h2>
+                    <pre id="generated-code"></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
 </html>
