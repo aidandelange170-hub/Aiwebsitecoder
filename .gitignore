@@ -2,34 +2,21 @@
 # Dependencies
 node_modules/
 
-# Editor/IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# Logs
-*.log
-
-# Environment files
+# Environment
 .env
 .env.local
 *.env.*
 
-# Python artifacts (if any Python files exist in project)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
 
 # Build artifacts
 dist/
 build/
-*.min.js
-*.min.css
-
-# OS generated files
-.DS_Store
-Thumbs.db
+*.tmp
+*.swp
 ```
